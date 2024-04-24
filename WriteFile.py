@@ -91,18 +91,62 @@ def change_seam(dist):
         
         slave.write(' '.join(line)+'\n')
 
+############## Changing Door seam allowance ##############
+# Only change surface cards 3
+def change_sideDoor(dist):
+    for line in Master[seam_lines[1]+3:Side_lines[0]]:
+        slave.write(line)
+    for line in Master[Side_lines[0]:Front_lines[0]]:
+        line = line.split()
+        if line[0].isdigit():
+            type = line[1]
+            cm = 0.00254 # convert thou inch to cm
+            if type == "P":
+                line[2] = str(round(float(line[2]) + dist*cm - 0.1, 3))
+                line[5] = str(round(float(line[5]) + dist*cm - 0.1, 3))
+                line[8] = str(round(float(line[8]) + dist*cm - 0.1,3))
+            elif type == "RPP":
+                line[2] = str(round(float(line[2]) + dist*cm - 0.1,3))
+                line[3] = str(round(float(line[3]) + dist*cm - 0.1,3))
+            elif type == "RCC":
+                line[2] = str(round(float(line[2]) + dist*cm - 0.1,3))
+            else:
+                print('The Surface is none of these')
+            
+        slave.write(" ".join(line)+"\n")
+
+def change_FrontDoor(dist):
+    for line in Master[Front_lines[0]:Front_lines[1]]:
+        line = line.split()
+        if line[0].isdigit():
+            type = line[1]
+            cm = 0.00254 # convert thou inch to cm
+            if type == "P":
+                line[2] = str(round(float(line[2]) + dist*cm - 0.1, 3))
+                line[5] = str(round(float(line[5]) + dist*cm - 0.1, 3))
+                line[8] = str(round(float(line[8]) + dist*cm - 0.1,3))
+            elif type == "RPP":
+                line[2] = str(round(float(line[2]) + dist*cm - 0.1,3))
+                line[3] = str(round(float(line[3]) + dist*cm - 0.1,3))
+            elif type == "RCC":
+                line[2] = str(round(float(line[2]) + dist*cm - 0.1,3))
+            else:
+                print('The Surface is none of these')
+            
+        slave.write(" ".join(line)+"\n")
+
 ############## Weight Windows/Tallies ##############
 def tallies_WWG(Variance_Reduction, Tallies, variance_lines, tally_lines, first):
-    for line in Master[seam_lines[1]:variance_lines[0]]:
+    for line in Master[Front_lines[1]:variance_lines[0]]:
             slave.write(line)
     if Variance_Reduction and first:
         for line in Master[variance_lines[0]:tally_lines[0]-5]:
             slave.write(line[2:])
     else: # Variance_Reduction:
-        for line in Master[variance_lines[0]:tally_lines[0]-3]:
+        for line in Master[variance_lines[0]:tally_lines[0]]:
             slave.write(line[2:])
     if Tallies:
-        for line in Master[tally_lines[0]-1:]:
+        for line in Master[tally_lines[0]:]:
             slave.write(line[2:])   
 
 kill = [True, 'c']
@@ -114,19 +158,29 @@ surface_lines = retrieve_section(Master,section, kill, step=5)
 
 section = 'c                       Data Cards'
 variance= 'c                   Variance Reduction'
-tally= 'c                   Tallies'
+tally= 'c                   Dose Response'
 data_lines = retrieve_section(Master, section, kill,step=3)
 variance_lines = retrieve_section(Master, variance, ["",tally], 2)
 tally_lines = retrieve_section(Master, tally, kill ,2)
-
-
-############## Changing main seam allowance ##############
+############## Changing Seam Allowances ##############
 Master_Seam = 1 #mm
+kill = ["c -------------------------------------------------------------------", 'c']
 
 seam_flag = "c       Secondary Shield"
 seam_lines = retrieve_section(Master[surface_lines[0]:], seam_flag, kill, step=2)
 seam_lines[0], seam_lines[1] = seam_lines[0] + surface_lines[0],  seam_lines[1] + surface_lines[0]
 
+Side_flag = "c       Side Door"
+Side_lines = retrieve_section(Master[surface_lines[0]:], Side_flag, kill, step=2)
+Side_lines[0], Side_lines[1] = Side_lines[0] + surface_lines[0],  Side_lines[1] + surface_lines[0]
+
+Front_flag = "c       Front Door"
+Front_lines = retrieve_section(Master[surface_lines[0]:], Front_flag, kill, step=2)
+Front_lines[0], Front_lines[1] = Front_lines[0] + surface_lines[0],  Front_lines[1] + surface_lines[0]+15
+print(seam_lines)
+print(Side_lines)
+print(Front_lines)
+print(tally_lines)
 
 ############## Action ##############
 
@@ -139,6 +193,8 @@ for i in range(n_red):
     slave  = open(Path_To_Folder+"\\"+ Model+"_"+Version+"_"+"Slave"+str(i)+".i", 'w')
     new_density(Master, slave, (i+1)/n_red)
     change_seam(new_seam)
+    change_sideDoor(new_seam)
+    change_FrontDoor(new_seam)
     if i+1 == n_red:
         tallies_WWG(True, True, variance_lines, tally_lines, False)
     elif i == 0:

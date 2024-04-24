@@ -321,7 +321,7 @@ NPS 3.7E10
 PRINT 10 60 110
 PRDMP J 5e7 0 1
 RAND 97008386995783
-IMP:P 1 23R 0
+IMP:P 1 32R 0
 c -------------------------------------------------------------------
 c           Material Cards
 c -------------------------------------------------------------------
@@ -401,7 +401,7 @@ c      KINTS = 2 110 5
 c c
 c WWP:P 5 3 5 0 -1 J J J
 c c ------------------------------------------------------------------------
-c c                   Tallies
+c c                   Dose Response
 c c ------------------------------------------------------------------------
 c c Photon Flux-to-Dose Rate Conversion Factors $ [pSv-cm^2]
 c c Extracted from ICRP 116 Dose Conversion Coefficients
@@ -423,5 +423,45 @@ c      14.6000 17.6000 20.6000 27.7000 34.4000 46.1000 56.0000
 c      64.4000 71.2000 82.0000 89.7000 102.0000 111.0000 121.0000
 c      128.0000 133.0000 136.0000 142.0000 145.0000 152.0000 156.0000
 c      161.0000 165.0000 168.0000 170.0000 172.0000 175.0000
-
-
+c c ------------------------------------------------------------------------
+c c                   Mesh Tallies
+c c ------------------------------------------------------------------------
+c FMESH14:p GEOM=XYZ Origin=-2.223 -13.335 -14.605
+c         IMESH=107.415    IINTS=110
+c         JMESH=13.335    JINTS=26
+c         KMESH=14.605    KINTS=28
+c FC14 FMESH Tally over the entire Span of the beam Chamber
+c FM14 6.29499e+11
+c c
+c FMESH24:p GEOM=XYZ ORIGIN=-100 -100 -100
+c         IMESH=200       IINTS=300
+c         JMESH=100       JINTS=200
+c         KMESH=100       KINTS=200
+c FC24 FMESH Tally over the Whole Volume
+c FM24 6.29499e+11 
+c c ------------------------------------------------------------------------
+c c                   Point Detector Tallies
+c c ------------------------------------------------------------------------
+c F115:p 29.31 -48 56 1.0  29.31 -28 56 1.0  29.31 0 56 1.0  29.31 28 56 1.0  29.31 48 56 1.0
+c FC115 Point Detector Tallies above the Seam -Y to +Y
+c FM115 6.29499e+11
+c c
+c F125: 29.31 -49 56 1.0  29.31 -49 25 1.0  29.31 -49 0 1.0 29.31 -49 -25 1.0  29.31 -49 -56 1.0
+c FC125 Point Detector Tallies -Y of the Seam Vertically
+c FM125 6.29499e+11
+c c
+c F135:p 29.31 -48 -45 1.0  29.31 -28 -45 1.0  29.31 0 -45 1.0  29.31 28 -45 1.0  29.31 48 -45 1.0
+c FC135 Point Detector Tallies above the Seam -Y to +Y
+c FM135 6.29499e+11
+c c
+c F145:p 29.31 49 56 1.0  29.31 49 25 1.0  29.31 49 0 1.0 29.31 49 -25 1.0  29.31 49 -56 1.0
+c FC145 Point Detector Tallies -Y of the Seam Vertically
+c FM145 6.29499e+11
+c c
+c F155:p 108 -5 -38 2.0
+c FC155 Point Detector at Cable Baffle Outlet
+c FM155 6.29499e+11
+c c
+c F165:p 0 4.45 51 1.0  0 -4.45 51 1.0
+c FC165 Point Detectors directly above the Sources
+c FM165 6.29499e+11
