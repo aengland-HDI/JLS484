@@ -37,11 +37,8 @@ indices_Z = np.around(np.linspace(-14.083, 14.083, 28), decimals=3)
 ## Animate going down the beam tunnel
 
 
-def calc_beam_ratio(data):
-    ## Beam Uniformity Ratio is defined as the max to minimum beam
-    avg = np.average(data)
-    ratio = data/avg
-    return ratio
+def calc_ratio(min, max):
+    return max/min
 
 
 ## animate the beam line
@@ -131,19 +128,16 @@ def beam_uniformity_multiFiles(directory, j_dist, save):
             beam = np.load(PATH)
         except EOFError as e:
             print(e,PATH)
-        
+        ## This is worse uniformity
         for i in range(X):
-            DUR = np.nanmin(beam[i]/np.nanmax(beam[i]))
+            DUR = np.nanmax(np.nanmax(beam[i])/(beam[i]))
             DUR_mean[i, DZ_index, DY_index] = DUR
-            Delta[i, DZ_index, DY_index] = 1-np.nanmin(beam[i]/np.nanmax(beam[i]))
 
 
     ## determine the best beam uniformity ratios for 
     print("------------------------------------------------------------------------\n")
     print("     MIN DUR:%.3f"%np.nanmin(DUR_mean[j_dist]))
     print("     MAX DUR:%.3f"%np.nanmax(DUR_mean[j_dist]))
-    print("     MAX DIFFERENCE:%.3f"%np.nanmax(Delta[j_dist]))
-    print("     MIN DIFFERENCE:%.3f"%np.nanmin(Delta[j_dist]))
     print("\n------------------------------------------------------------------------\n")
 
 
@@ -158,7 +152,7 @@ def beam_uniformity_multiFiles(directory, j_dist, save):
         im = ax.imshow(DUR_mean[i], origin="lower", )
         max, min = round(np.nanmax(DUR_mean[i]),2), round(np.nanmin(DUR_mean[i]),2)
         ax.set_title("Dose Uniformity Ratios(DUR) at %.2f from Source\nMIN DUR: %.2f   MAX DUR:%.2f"%(indices_X[i], min, max))
-        ax.set_xlabel("Distance between Exterior of Sources (cm)")
+        ax.set_xlabel("Distance between Center of Sources (cm)")
         ax.set_ylabel("Distance between Top and Bottom of Sources (cm)")
 
     ani = animation.FuncAnimation(fig, animate, interval=250, frames=50)
@@ -180,15 +174,14 @@ def plot_beam_YZ_ofX(data_set, X, save_directory):
     print("     MAX EXPOSURE is: %.3f R/hr"%np.max(beam[X_index]*1E-3))
     print("     MAX DOSE RATE is: %.3f rad(Si)/hr"%np.max(beam_rad[X_index]))
     print("     MAX DOSE RATE is: %.3f Gy(Si)/hr\n"%np.max(beam_Gy[X_index]))
-    print("     DUR: %.3f"%(np.nanmin(beam[X_index])/np.nanmax(beam[X_index])))
-    print("     Intensity Difference is: %.3f"%(1-np.nanmin(beam[X_index]/np.nanmax(beam[X_index]))))
+    print("     DUR: %.3f"%(np.nanmax(beam[X_index])/np.nanmin(beam[X_index])))
     print("------------------------------------------------------------------------")
 
 
     fig, ax = plt.subplots()
     im = ax.imshow(beam[X_index], origin='lower')
     
-    plt.colorbar(im, label="Exposure (mrem/hr)")
+    plt.colorbar(im, label="Exposure Rate (mR/hr)")
     ax.set_xticks(np.linspace(0, 25, 6),np.linspace(-12.5, 12.5, 6))
     ax.set_yticks(np.linspace(0, 27, 6),np.linspace(-15, 15, 6))
     ax.vlines(12.5, 0, 27, color="r", linestyles="dashed", linewidths=1.0)
@@ -203,7 +196,7 @@ def plot_beam_YZ_ofX(data_set, X, save_directory):
     fig, ax = plt.subplots()
     im = ax.imshow(beam_rad[X_index], origin='lower')
     
-    plt.colorbar(im, label="Absorbed Dose [rads(Si)/hr]")
+    plt.colorbar(im, label="Dose Rate [rads(Si)/hr]")
     ax.set_xticks(np.linspace(0, 25, 6),np.linspace(-12.5, 12.5, 6))
     ax.set_yticks(np.linspace(0, 27, 6),np.linspace(-15, 15, 6))
     ax.vlines(12.5, 0, 27, color="r", linestyles="dashed", linewidths=1.0)
@@ -217,7 +210,7 @@ def plot_beam_YZ_ofX(data_set, X, save_directory):
     fig, ax = plt.subplots()
     im = ax.imshow(beam_Gy[X_index], origin='lower')
     
-    plt.colorbar(im, label="Absorbed Dose [Gy(Si)/hr]")
+    plt.colorbar(im, label="Dose Rate [Gy(Si)/hr]")
     ax.set_xticks(np.linspace(0, 25, 6),np.linspace(-12.5, 12.5, 6))
     ax.set_yticks(np.linspace(0, 27, 6),np.linspace(-15, 15, 6))
     ax.vlines(12.5, 0, 27, color="r", linestyles="dashed", linewidths=1.0)
@@ -228,6 +221,23 @@ def plot_beam_YZ_ofX(data_set, X, save_directory):
     ax.set_title("Beam Profile at %.1f from Sources\n Y-Spacing:%.1f cm  Z-Spacing:%.1f cm"%(X, dy, dz))
     fig.savefig(save_directory+"BeamProfileGRAYS_%.1f_%.1f_%.1f.jpg"%(X, dy, dz))
 
+
+    ### Chop down to size of film: 15.25 x 20.32 cm
+    Z_1, Z_2 = np.where(np.isclose(-7.5, indices_Z, rtol = 0.06))[0][0], np.where(np.isclose(7.5, indices_Z, rtol = 0.06))[0][0]
+    Y_1, Y_2 = np.where(np.isclose(-10, indices_Z, rtol = 0.06))[0][0], np.where(np.isclose(10, indices_Z, rtol = 0.06))[0][0]
+    
+    fig, ax = plt.subplots()
+    im = ax.imshow(beam_rad[X_index][Z_1:Z_2][Y_1:Y_2], origin='lower')
+    plt.colorbar(im, label="Dose Rate [Gy(Si)/hr]")
+    ax.set_xticks(np.linspace(0, 25, 6),np.linspace(-12.5, 12.5, 6))
+    ax.set_yticks(np.linspace(0, 10, 6),np.linspace(-15, 15, 6))
+    ax.vlines(12.5, -0.5, 10.5, color="r", linestyles="dashed", linewidths=1.0)
+    ax.hlines(5, -0.5, 25.5, color="r", linestyles="dashed", linewidths=1.0)
+
+    ax.set_xlabel("Distance from Y-Centerline (cm)")
+    ax.set_ylabel("Distance from Z-Centerline (cm)")
+    ax.set_title("Film Profile at %.1f from Sources\n Y-Spacing:%.1f cm  Z-Spacing:%.1f cm"%(X, dy, dz))
+    fig.savefig(save_directory+"FILMProfileGRAYS_%.1f_%.1f_%.1f.jpg"%(X, dy, dz))
 
 def max_dose_configs(directory, X_dist, Processed_Data):
     indices_dy = np.arange(4.5, 24.5, 1)
@@ -264,7 +274,7 @@ def max_dose_configs(directory, X_dist, Processed_Data):
     plt.figure()
     im = plt.imshow(DOSE[0], origin='lower')
     plt.colorbar(im, label="Exposure Rate (R/hr)")
-    plt.xlabel("Distance between Exterior of Sources (cm)")
+    plt.xlabel("Distance between Center of Sources (cm)")
     plt.ylabel("Distance between Top and Bottom of Sources (cm)")
     plt.title("Maximum Exposure Rate at %.1f cm"%X_dist)
     plt.savefig(Processed_Data+"MaxExposure_%.1fcm.jpg"%X_dist)
@@ -272,7 +282,7 @@ def max_dose_configs(directory, X_dist, Processed_Data):
     plt.figure()
     im = plt.imshow(DOSE[1], origin='lower')
     plt.colorbar(im, label="Absorbed Dose Rate (rads(Si)/hr)")
-    plt.xlabel("Horizontal Distance between Exterior of Sources (cm)")
+    plt.xlabel("Horizontal Distance between Center of Sources (cm)")
     plt.ylabel("Vertical Distance between Top and Bottom of Sources (cm)")
     plt.title("Maximum Absorbed Dose Rate at %.1f cm"%X_dist)
     plt.savefig(Processed_Data+"MaxRADS_%.1fcm.jpg"%X_dist)
@@ -281,7 +291,7 @@ def max_dose_configs(directory, X_dist, Processed_Data):
     plt.figure()
     im = plt.imshow(DOSE[2], origin='lower')
     plt.colorbar(im, label="Absorbed Dose Rate (Gy(Si)/hr)")
-    plt.xlabel("Distance between Exterior of Sources (cm)")
+    plt.xlabel("Distance between Center of Sources (cm)")
     plt.ylabel("Distance between Top and Bottom of Sources (cm)")
     plt.title("Maximum Absorbed Dose Rate at %.1f cm"%X_dist)
     plt.savefig(Processed_Data+"MaxGREYS_%.1fcm.jpg"%X_dist)
@@ -295,20 +305,20 @@ def radiochromic_film(path_10, path_175, save):
     def DUR(data):
         args_max, args_min = np.unravel_index(np.argmax(data), data.shape), np.unravel_index(np.argmin(data), data.shape)
         max, min = np.max(data), np.min(data)
-        DUR = data/max
-        min_DUR = np.min(DUR)
-        return args_max, args_min, max, min, DUR, min_DUR
+        DUR = max/data
+        max_DUR = np.max(DUR)
+        return DUR, max_DUR
     
-    args_max_10, args_min_10, max_10, min_10, DUR_10, min_DUR_10 = DUR(data_10)
-    args_max_175, args_min_175, max_175, min_175, DUR_175, min_DUR_175 = DUR(data_175)
+    DUR_10, max_DUR_10 = DUR(data_10)
+    DUR_175, max_DUR_175 = DUR(data_175)
 
-    def PRINT(dist, min_DUR):
+    def PRINT(dist, max_DUR):
         print("------------------------------------------------------------------------\n")
         print("     Measurement taken at %.1f cm from sources"%dist)
-        print("     MIM DUR: %.3f"%min_DUR)
+        print("     MIM DUR: %.3f"%max_DUR)
         print("\n------------------------------------------------------------------------")
-    PRINT(10, min_DUR_10)
-    PRINT(17.5, min_DUR_175)
+    PRINT(10, max_DUR_10)
+    PRINT(17.5, max_DUR_175)
 
     def plotter(dist, data):
         shape = data.shape
@@ -345,9 +355,5 @@ for i in [10.5, 17.5, 30.5,50.5,  70.5, 90.5]:
 # film_175 = "X:\\Operations\\ProjectsEng\\HDI\\SO 3887 JLS 484 Replacement\\Radiation Physics\\FWT - Radiochromic Film Readouts\\HDR Cal Data_175mm.txt"
 # save_film = "X:\\Operations\\ProjectsEng\\HDI\\SO 3887 JLS 484 Replacement\\Radiation Physics\\FWT - Radiochromic Film Readouts\\"
 # radiochromic_film(film_10, film_175, save_film )
-
-# mass_atten_air = 0.9988*np.interp(1.1732, [1, 1.25, 1.5], [2.789E-02, 2.666E-02, 2.547E-02])+np.interp(1.3325, [1, 1.25, 1.5], [2.789E-02, 2.666E-02, 2.547E-02])
-# mass_atten_silicon = 0.9988*np.interp(1.1732, [1, 1.022, 1.25, 1.5], [6.361E-02, 6.293E-02, 5.688E-02, 5.183E-02])+np.interp(1.3325, [1, 1.022, 1.25, 1.5], [6.361E-02, 6.293E-02, 5.688E-02, 5.183E-02])
-# mass_atten_water = 0.9988*np.interp(1.1732,  [1, 1.022, 1.25, 1.5], [7.072E-02, 6.997E-02, 6.323E-02, 5.754E-02])+np.interp(1.3325,  [1, 1.022, 1.25, 1.5], [7.072E-02, 6.997E-02, 6.323E-02, 5.754E-02])
 
 # print(mass_atten_water/mass_atten_air)    

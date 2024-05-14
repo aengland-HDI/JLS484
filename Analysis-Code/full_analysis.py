@@ -45,10 +45,16 @@ def read_data_to_table(path, files, region):
                 list_error.append(nums[5])
                 if X == [] or X[-1] != nums[1]:
                     X.append(nums[1])
-                elif Y == [] or Y[-1] != nums[2]:
+                if Y == [] or Y[-1] != nums[2]:
                     Y.append(nums[2])
-                elif Z == [] or Z[-1] != nums[3]:
+                if Z == [] or Z[-1] != nums[3]:
                     Z.append(nums[3])
+
+            ylocs = np.argmin(np.array(Y[1::])-Y[0])+1
+            zlocs = np.argmin(np.array(Z[1::])-Z[0])+1
+
+            Y,Z = Y[0:ylocs+1], Z[0:zlocs+1]
+                
             df_x, df_y, df_z = pd.DataFrame(X), pd.DataFrame(Y), pd.DataFrame(Z)
             df = pd.DataFrame(columns = ["X-Vals", "Y-Vals", "Z-Vals", "X", "Y", "Z", "Tally", "Error"])
             df["X"], df["Y"], df["Z"], df["Tally"], df["Error"] = list_x, list_y, list_z, list_tally, list_error
@@ -97,14 +103,51 @@ def X_CUTS(filepath, out):
         Z_index = np.where(np.isclose(float(df[i,9]), I_Z, rtol = 0.0001))[0][0]
         Tallies_X[X_index, Z_index, Y_index] = df[i, 10]
         Error_X[X_index, Z_index, Y_index] = df[i, 11]
-    
+        
+    return Tallies_X, Error_X
 
+def Y_CUTS(filepath, out):
+    df = pd.read_csv(filepath, dtype=float).to_numpy()
+    I_X, I_Y, I_Z = df[~np.isnan(df[:,1]), 1], df[~np.isnan(df[:,2]), 2], df[~np.isnan(df[:,3]), 3]
     
-    
+    Tallies_Y, Error_Y = np.zeros((len(I_Y), len(I_Z), len(I_X))), np.zeros((len(I_Y), len(I_Z), len(I_X)))
+    Tallies_Y[:], Error_Y[:] = np.nan, np.nan
+    for i in range(len(df[:,11])):
+        X_index = np.where(np.isclose(float(df[i,7]), I_X, rtol = 0.0001))[0][0]
+        Y_index = np.where(np.isclose(float(df[i,8]), I_Y, rtol = 0.0001))[0][0]
+        Z_index = np.where(np.isclose(float(df[i,9]), I_Z, rtol = 0.0001))[0][0]
+        Tallies_Y[Y_index, Z_index, X_index] = df[i, 10]
+        Error_Y[Y_index, Z_index, X_index] = df[i, 11]
+        
+    return Tallies_Y, Error_Y
 
-path = "X:\\Operations\\ProjectsEng\\HDI\\SO 3887 JLS 484 Replacement\\Radiation Physics\\MCNP\\Version 10\\"
+def Z_CUTS(filepath, out):
+    df = pd.read_csv(filepath, dtype=float).to_numpy()
+    I_X, I_Y, I_Z = df[~np.isnan(df[:,1]), 1], df[~np.isnan(df[:,2]), 2], df[~np.isnan(df[:,3]), 3]
+    Tallies_Z, Error_Z = np.zeros((len(I_Z), len(I_Y), len(I_X))), np.zeros((len(I_Z), len(I_Y), len(I_X)))
+    Tallies_Z[:], Error_Z[:] = np.nan, np.nan
+    for i in range(len(df[:,11])):
+        X_index = np.where(np.isclose(float(df[i,7]), I_X, rtol = 0.0001))[0][0]
+        Y_index = np.where(np.isclose(float(df[i,8]), I_Y, rtol = 0.0001))[0][0]
+        Z_index = np.where(np.isclose(float(df[i,9]), I_Z, rtol = 0.01))[0][0]
+        Tallies_Z[Z_index, Y_index, X_index] = df[i, 10]
+        Error_Z[Z_index, Y_index, X_index] = df[i, 11]
+        
+    return Tallies_Z, Error_Z
+
+
+
+path = "X:\\Operations\\ProjectsEng\\HDI\\SO 3887 JLS 484 Replacement\\Radiation Physics\\MCNP\\Version 10.1\\Results\\"
 file = "JLS484_V10_Slave3.imsht"
 # version = 10.1
 # read_data_to_table(path, file, "Beam Chamber")
+# read_data_to_table(path, file, "Full Model")
 
-X_CUTS(path+"Beam Chamber.csv", 1)
+# Tallies_X, Error_X = X_CUTS(path+"Beam Chamber.csv", 1)
+Tallies_Z, Error_Z = Z_CUTS(path+"Full Model.csv", 1)
+
+
+plt.figure()
+im = plt.imshow(Tallies_Z[100])
+plt.colorbar(im)
+plt.show()
