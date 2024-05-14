@@ -17,7 +17,7 @@ for DY in np.arange(4.5, 24.5, 1):
     for DZ in np.arange(1.5, 23.5, 1):
         runs=runs+1
         print(DY, DZ)
-        master_file = "C:\\Users\\alex.england\\Documents\\Project-3887\\Beam_Profile\\Master.i"
+        master_file = "C:\\Users\\alex.england\\Documents\\JLS484\\Analysis-Code\\Master.i"
         filename = 'Beam_Profile_%.2f_%.2f.i' %(DY, DZ)
 
         if DZ <= 2*0.556:
@@ -54,7 +54,7 @@ for DY in np.arange(4.5, 24.5, 1):
         Inner_Radius_Rod = 1.918
         Outer_Radius_Rod = 2.223
 
-        Radii = [Source_Radius, Cladding_Radius, Cladding_Radius, Inner_Radius_Holder, Outer_Radius_Holder, Tungsten_IRadius, Tungsten_ORadius, Inner_Radius_Rod, Outer_Radius_Rod]
+        Radii = [Source_Radius, Cladding_Radius, Cladding_Radius, Inner_Radius_Holder, Outer_Radius_Holder, Tungsten_IRadius, Tungsten_ORadius, Inner_Radius_Rod, Outer_Radius_Rod, Source_Radius]
         Height = [Source_Height, Cladding_Height, DZ-0.556-0.152]
 
     ######################################################
@@ -92,9 +92,11 @@ for DY in np.arange(4.5, 24.5, 1):
         ## Changing Dimensions of Source Holder and adding Spacer
 
         Spacer = np.array([[Sources[0, 0],Sources[0, 1]], [ Cladding[1, 2], Cladding[1, 2]]])
+        Spacer_Hole = np.array([[Sources[0, 0],Sources[0, 1]], [ Cladding[1, 2]+0.0254, Cladding[1, 2]+0.0254]])
         Air_Gap_SR = np.array([[Sources[0, 0],Sources[0, 1]], [ Cladding[1, 2]-Cladding_Height-0.0254, Cladding[1, 2]-Cladding_Height-0.0254] ])
         Source_Rod = np.array([[Sources[0, 0],Sources[0, 1]], [ Cladding[1, 2]-Cladding_Height-0.0254-0.793, Cladding[1, 2]-Cladding_Height-0.0254-0.793] ])
         Values['Spacer'] = Spacer.tolist()
+        
         Values['Air_Gap_In'] = Air_Gap_SR.tolist()
         Values['Source_Rod'] = Source_Rod.tolist()
 
@@ -114,9 +116,11 @@ for DY in np.arange(4.5, 24.5, 1):
         Source_Rods = np.array([[Sources[0, 0],Sources[0, 1]],[-Geom_H, -Geom_H]])
         Values['Air_Rods'] = Air_Region.tolist()
         Values['Source_Rods_Outer'] = Source_Rods.tolist()
+        Values["SpacerHole"] = Spacer_Hole.tolist()
 
         Height.append(2*Geom_H-2*0.254)
         Height.append(2*Geom_H)
+        Height.append(DZ-0.556-0.152-2*0.0254)
 
         Source_Points = Sources
         Source_Points[1, [0,1]] = np.add(Source_Points[1, [0,1]], 0.5*Source_Height)
@@ -133,7 +137,7 @@ for DY in np.arange(4.5, 24.5, 1):
 
         ## Writing new input file
 
-        new_file = open('Inputs\\'+filename, 'w')
+        new_file = open(filename, 'w')
         master = open(master_file, 'r')
 
         surface_line = "c                       Surface Cards"

@@ -17,7 +17,7 @@ c
 c       Source  and Rod Assemblies
 101 7 -8.86 -10:-11:-12:-13                $ Sources
 102 5 -8.0  (-14 10):(-15 11):(-16 12):(-17 13) $ Cladding surrounding Source
-103 5 -8.0  -18:-19                            $ Spacers
+103 5 -8.0  (-18 32):(-19 33)                            $ Spacers
 104 5 -8.0  (-22 20 24):(-23 21 25)                   $ Source Rods
 105 17 -19.28 -24:-25:-26:-27                $ Tungsten
 106 5 -8.0 (-30 28 26):(-31 29 27)           $ Steel Rods

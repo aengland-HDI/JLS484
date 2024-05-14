@@ -17,11 +17,6 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 # file = "C:\\Users\\alex.england\\Documents\\Project-3887\\Beam_Profile\\Beam_Profile_4.50_1.50.imsht"
 # path = "C:\\Users\\alex.england\\Documents\\Project-3887\\Beam_Profile"
-directory = "C:\\Users\\alex.england\\Documents\\Project-3887\\Server_Runs\\Beam_Profile\\Beam_Profile"
-
-Save_Tallies = "C:\\Users\\alex.england\\Documents\\Project-3887\\Server_Runs\\Beam_Profile\\Tally_Values\\"
-Save_Error = "C:\\Users\\alex.england\\Documents\\Project-3887\\Server_Runs\\Beam_Profile\\Error_Values\\"
-Processed_Data = "C:\\Users\\alex.england\\Documents\\Project-3887\\Server_Runs\\Beam_Profile\\Processed_Data\\"
 
 ## Uncomment the following if you need to load the data
 
@@ -164,8 +159,8 @@ def beam_uniformity_multiFiles(directory, j_dist, save):
 
 def plot_beam_YZ_ofX(data_set, X, save_directory):
     split = re.findall(r'[0-9]+', data_set)[1::]
-    dy = float(split[0]+"."+split[1])
-    dz = float(split[2]+"."+split[3])
+    dz = float(split[4]+"."+split[5])
+    dy = float(split[2]+"."+split[3])
     X_index = np.where(np.isclose(float(X), indices_X, rtol = 0.01))[0][0]
     beam = np.load(data_set)
     beam_rad, beam_Gy = convert_exposure_dose(beam, 1E-3, "silicon")
@@ -227,7 +222,7 @@ def plot_beam_YZ_ofX(data_set, X, save_directory):
     Y_1, Y_2 = np.where(np.isclose(-10, indices_Z, rtol = 0.06))[0][0], np.where(np.isclose(10, indices_Z, rtol = 0.06))[0][0]
     
     fig, ax = plt.subplots()
-    im = ax.imshow(beam_rad[X_index][Z_1:Z_2][Y_1:Y_2], origin='lower')
+    im = ax.imshow(beam_rad[X_index][ 7:-8][ 3:-4], origin='lower')
     plt.colorbar(im, label="Dose Rate [Gy(Si)/hr]")
     ax.set_xticks(np.linspace(0, 25, 6),np.linspace(-12.5, 12.5, 6))
     ax.set_yticks(np.linspace(0, 10, 6),np.linspace(-15, 15, 6))
@@ -238,6 +233,9 @@ def plot_beam_YZ_ofX(data_set, X, save_directory):
     ax.set_ylabel("Distance from Z-Centerline (cm)")
     ax.set_title("Film Profile at %.1f from Sources\n Y-Spacing:%.1f cm  Z-Spacing:%.1f cm"%(X, dy, dz))
     fig.savefig(save_directory+"FILMProfileGRAYS_%.1f_%.1f_%.1f.jpg"%(X, dy, dz))
+
+    print("*****************  DUR Calc. ***********************\n")
+    print("        DUR: %.3f"%(np.max(beam[X_index, 7:-8, 3:-4])/np.min(beam[X_index, 7:-8, 3:-4])))
 
 def max_dose_configs(directory, X_dist, Processed_Data):
     indices_dy = np.arange(4.5, 24.5, 1)
@@ -340,6 +338,11 @@ def radiochromic_film(path_10, path_175, save):
     plotter(10, DUR_10)
     plotter(17.5, DUR_175)
         
+directory = "X:\\Operations\\ProjectsEng\\HDI\\SO 3887 JLS 484 Replacement\\Radiation Physics\\MCNP\\Beam_Profile-V10\\Beam_Profile\\"
+Save_Tallies = "X:\\Operations\\ProjectsEng\\HDI\\SO 3887 JLS 484 Replacement\\Radiation Physics\\MCNP\\Beam_Profile-V10\\Tally_Values\\"
+Save_Error = "X:\\Operations\\ProjectsEng\\HDI\\SO 3887 JLS 484 Replacement\\Radiation Physics\\MCNP\\Beam_Profile-V10\\Error_Values\\"
+Processed_Data = "X:\\Operations\\ProjectsEng\\HDI\\SO 3887 JLS 484 Replacement\\Radiation Physics\\MCNP\\Beam_Profile-V10\\Processed_Data\\"
+
 
 # read_data_to_table(directory)
     
@@ -347,7 +350,7 @@ def radiochromic_film(path_10, path_175, save):
 
 for i in [10.5, 17.5, 30.5,50.5,  70.5, 90.5]:
     print("Starting %.1f"%i)
-    plot_beam_YZ_ofX(Save_Tallies+"4.50-4.50_TallyValues.npy", i, Processed_Data)
+    plot_beam_YZ_ofX(Save_Tallies+"17.50-14.50_TallyValues.npy", i, Processed_Data)
 
 # max_dose_configs(Save_Tallies, 10.5, Processed_Data)
 
